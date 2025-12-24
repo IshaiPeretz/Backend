@@ -5,7 +5,7 @@ export async function getStations(req, res) {
 	try {
 		const filterBy = {
 			name: req.query.txt || '',
-			
+
 		}
 		const stations = await stationService.query(filterBy)
 		res.json(stations)
@@ -31,7 +31,13 @@ export async function addStation(req, res) {
 	const station = {
 		name: body.name,
 		imgUrl: body.imgUrl || '',
-		owner: loggedinUser,
+		owner: loggedinUser || {
+			"_id": "694c1b3ba9b537bd0a56f092",
+			"username": "aaa",
+			"fullname": "aaa",
+		},
+		// just for testing from postman
+
 		description: '',
 		tracks: body.tracks || []
 	}
@@ -47,12 +53,12 @@ export async function addStation(req, res) {
 
 export async function updateStation(req, res) {
 	const { body: station } = req
-    // const { _id: userId, isAdmin } = loggedinUser
+	// const { _id: userId, isAdmin } = loggedinUser
 
-    // if(station.owner._id !== userId) {
-    //     res.status(403).send('Not your station...')
-    //     return
-    // }
+	// if(station.owner._id !== userId) {
+	//     res.status(403).send('Not your station...')
+	//     return
+	// }
 
 	try {
 		const updatedStation = await stationService.update(station)

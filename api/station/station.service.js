@@ -16,19 +16,12 @@ export const stationService = {
 
 }
 
-async function query(filterBy = {}) {
+export async function query(filterBy = {}) {
 	try {
 		const criteria = _buildCriteria(filterBy)
-		const sort = _buildSort(filterBy)
 
 		const collection = await dbService.getCollection('station')
-		var stationCursor = await collection.find(criteria, { sort })
-
-		if (filterBy.pageIdx !== undefined) {
-			stationCursor.skip(filterBy.pageIdx * PAGE_SIZE).limit(PAGE_SIZE)
-		}
-
-		const stations = stationCursor.toArray()
+		const stations = await collection.find(criteria).toArray()
 		return stations
 	} catch (err) {
 		logger.error('cannot find stations', err)
@@ -85,7 +78,7 @@ async function add(station) {
 }
 
 async function update(station) {
-	const stationToSave = { tracks: station.tracks, name: station.name, description: station.description}
+	const stationToSave = { tracks: station.tracks, name: station.name, description: station.description }
 
 	try {
 		const criteria = { _id: ObjectId.createFromHexString(station._id) }
@@ -129,15 +122,14 @@ async function update(station) {
 // 	}
 // }
 
-function _buildCriteria(filterBy) {
-	const criteria = {
-		name: { $regex: filterBy.name, $options: 'i' },
+function _buildCriteria(filterBy = {}) {
+	const criteria = {}
+
+	// only support fetching by list of IDs
+	if (filterBy.ids && filterBy.ids.length) {
+		const objectIds = filterBy.ids.map(id => new ObjectId(id))
+		criteria._id = { $in: objectIds }
 	}
 
 	return criteria
-}
-
-function _buildSort(filterBy) {
-	if (!filterBy.sortField) return {}
-	return { [filterBy.sortField]: filterBy.sortDir }
 }

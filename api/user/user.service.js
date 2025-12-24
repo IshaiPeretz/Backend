@@ -1,15 +1,15 @@
-import {dbService} from '../../services/db.service.js'
-import {logger} from '../../services/logger.service.js'
+import { dbService } from '../../services/db.service.js'
+import { logger } from '../../services/logger.service.js'
 
 import { ObjectId } from 'mongodb'
 
 export const userService = {
-	add, // Create (Signup)
-	getById, // Read (Profile page)
-	update, // Update (Edit profile)
-	remove, // Delete (remove user)
-	query, // List (of users)
-	getByUsername, // Used for Login
+    add, // Create (Signup)
+    getById, // Read (Profile page)
+    update, // Update (Edit profile)
+    remove, // Delete (remove user)
+    query, // List (of users)
+    getByUsername, // Used for Login
 }
 
 async function query(filterBy = {}) {
@@ -43,12 +43,12 @@ async function getById(userId) {
         criteria = { byUserId: userId }
 
         user.givenReviews = await reviewService.query(criteria)
-        
+
         user.givenReviews = user.givenReviews.map(review => {
             delete review.byUser
             return review
         })
-        
+
         return user
     } catch (err) {
         logger.error(`while finding user by id: ${userId}`, err)
@@ -57,14 +57,14 @@ async function getById(userId) {
 }
 
 async function getByUsername(username) {
-	try {
-		const collection = await dbService.getCollection('user')
-		const user = await collection.findOne({ username })
-		return user
-	} catch (err) {
-		logger.error(`while finding user by username: ${username}`, err)
-		throw err
-	}
+    try {
+        const collection = await dbService.getCollection('user')
+        const user = await collection.findOne({ username })
+        return user
+    } catch (err) {
+        logger.error(`while finding user by username: ${username}`, err)
+        throw err
+    }
 }
 
 async function remove(userId) {
@@ -83,9 +83,11 @@ async function update(user) {
     try {
         // peek only updatable properties
         const userToSave = {
-            _id: ObjectId.createFromHexString(user._id), // needed for the returnd obj
+            _id: ObjectId.createFromHexString(user._id),
             fullname: user.fullname,
-           
+            userStations: user.userStations,
+            likedSongs: user.likedSongs
+
         }
         const collection = await dbService.getCollection('user')
         await collection.updateOne({ _id: userToSave._id }, { $set: userToSave })
@@ -97,37 +99,40 @@ async function update(user) {
 }
 
 async function add(user) {
-	try {
-		// peek only updatable fields!
-		const userToAdd = {
-			username: user.username,
-			password: user.password,
-			fullname: user.fullname,
-			imgUrl: user.imgUrl,
-			
-		}
-		const collection = await dbService.getCollection('user')
-		await collection.insertOne(userToAdd)
-		return userToAdd
-	} catch (err) {
-		logger.error('cannot add user', err)
-		throw err
-	}
+    try {
+        // peek only updatable fields!
+        const userToAdd = {
+            username: user.username,
+            password: user.password,
+            fullname: user.fullname,
+            likedSongs: [],
+            userStations: [],
+            // userStations: ['694c180d70407f7479c91e31', '694c139b0b615e8dd4369754'] // For Testing
+
+
+        }
+        const collection = await dbService.getCollection('user')
+        await collection.insertOne(userToAdd)
+        return userToAdd
+    } catch (err) {
+        logger.error('cannot add user', err)
+        throw err
+    }
 }
 
 function _buildCriteria(filterBy) {
-	const criteria = {}
-	if (filterBy.txt) {
-		const txtCriteria = { $regex: filterBy.txt, $options: 'i' }
-		criteria.$or = [
-			{
-				username: txtCriteria,
-			},
-			{
-				fullname: txtCriteria,
-			},
-		]
-	}
+    const criteria = {}
+    if (filterBy.txt) {
+        const txtCriteria = { $regex: filterBy.txt, $options: 'i' }
+        criteria.$or = [
+            {
+                username: txtCriteria,
+            },
+            {
+                fullname: txtCriteria,
+            },
+        ]
+    }
 
-	return criteria
+    return criteria
 }

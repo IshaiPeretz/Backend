@@ -31,6 +31,7 @@ export async function addStation(req, res) {
 	const { loggedinUser, body } = req
 	const station = {
 		name: body.name,
+	
 	}
 	
 	try {

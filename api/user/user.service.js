@@ -71,24 +71,29 @@ async function remove(userId) {
     }
 }
 
-async function update(user) {
-    try {
-        // peek only updatable properties
-        const userToSave = {
-            _id: user._id,
-            fullname: user.fullname,
-            userStationsIds: user.userStationsIds,
-            likedSongs: user.likedSongs
 
+async function update(user) {
+  try {
+
+    const collection = await dbService.getCollection('user')
+    const userId = new ObjectId(user._id)
+    
+    await collection.updateOne(
+      { _id:  userId },
+      { $set: { 
+          likedSongs: user.likedSongs || [],
+          userStationsIds: user.userStationsIds || [],
         }
-        const collection = await dbService.getCollection('user')
-        await collection.updateOne({ _id: userToSave._id }, { $set: userToSave })
-        return userToSave
-    } catch (err) {
-        logger.error(`cannot update user ${user._id}`, err)
-        throw err
-    }
+      }
+    )
+    
+    return await collection.findOne({ _id: userId })
+  } catch (err) {
+    logger.error(`cannot update user ${user._id}`, err)
+    throw err
+  }
 }
+
 
 async function add(user) {
     try {
@@ -99,7 +104,6 @@ async function add(user) {
             fullname: user.fullname,
             likedSongs: [],
             userStationsIds: [],
-            // userStations: ['694c180d70407f7479c91e31', '694c139b0b615e8dd4369754'] // For Testing
         }
         const collection = await dbService.getCollection('user')
         await collection.insertOne(userToAdd)

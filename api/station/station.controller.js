@@ -1,6 +1,10 @@
 import { logger } from '../../services/logger.service.js'
+import { getRandomInt } from '../../services/util.service.js'
 import { userService } from '../user/user.service.js'
 import { stationService } from './station.service.js'
+
+
+const genres = ['rock', 'pop', 'country', 'trending', 'mood', 'workout', 'R&B', 'chill', 'jazz', 'metal', 'hip-hop']
 
 export async function getStations(req, res) {
 	try {
@@ -37,7 +41,8 @@ export async function addStation(req, res) {
 		imgUrl: body.imgUrl || '',
 		owner: loggedinUser,
 		description: '',
-		tracks: body.tracks || []
+		tracks: body.tracks || [],
+		genre: genres[getRandomInt(0, genres.length - 1)]
 	}
 	try {
 
@@ -62,12 +67,11 @@ export async function addStation(req, res) {
 export async function updateStation(req, res) {
 	const { body: station } = req
 	// const { _id: userId, isAdmin } = loggedinUser
-
 	// if(station.owner._id !== userId) {
 	//     res.status(403).send('Not your station...')
 	//     return
 	// }
-
+	
 	try {
 		const updatedStation = await stationService.update(station)
 		res.json(updatedStation)

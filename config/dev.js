@@ -1,4 +1,8 @@
-export default  {
-  dbURL: 'mongodb://127.0.0.1:27017',
-  dbName : 'station_db'
+import dotenv from 'dotenv'
+dotenv.config()
+console.log(process.env.MONGO_URL);
+
+export default {
+  dbURL: process.env.MONGO_URL,
+  dbName: 'station_db'
 }

@@ -100,8 +100,6 @@ async function add(user) {
             likedSongs: [],
             userStationsIds: [],
             // userStations: ['694c180d70407f7479c91e31', '694c139b0b615e8dd4369754'] // For Testing
-
-
         }
         const collection = await dbService.getCollection('user')
         await collection.insertOne(userToAdd)

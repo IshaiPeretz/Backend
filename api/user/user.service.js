@@ -38,17 +38,9 @@ async function getById(userId) {
         const collection = await dbService.getCollection('user')
         const user = await collection.findOne(criteria)
         delete user.password
-        console.log(user)
+      
 
-        criteria = { byUserId: userId }
-
-        user.givenReviews = await reviewService.query(criteria)
-
-        user.givenReviews = user.givenReviews.map(review => {
-            delete review.byUser
-            return review
-        })
-
+    
         return user
     } catch (err) {
         logger.error(`while finding user by id: ${userId}`, err)
@@ -83,9 +75,9 @@ async function update(user) {
     try {
         // peek only updatable properties
         const userToSave = {
-            _id: ObjectId.createFromHexString(user._id),
+            _id: user._id,
             fullname: user.fullname,
-            userStations: user.userStations,
+            userStationsIds: user.userStationsIds,
             likedSongs: user.likedSongs
 
         }
@@ -106,7 +98,7 @@ async function add(user) {
             password: user.password,
             fullname: user.fullname,
             likedSongs: [],
-            userStations: [],
+            userStationsIds: [],
             // userStations: ['694c180d70407f7479c91e31', '694c139b0b615e8dd4369754'] // For Testing
 
 

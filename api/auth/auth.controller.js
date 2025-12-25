@@ -9,13 +9,15 @@ export async function login(req, res) {
 		const loginToken = authService.getLoginToken(user)
 
 
-		//station.service query with user.stations 
-		const userStations = await stationService.query({ ids: user.userStations || [] })
-
+	
+		// let userStations = []
+		// if (user.userStations && user.userStations.length > 0) {
+		// 	userStations = await stationService.query({ ids: user.userStations })
+		// }
 		res.cookie('loginToken', loginToken, { sameSite: 'None', secure: true })
-		// return object of user and user.stations
-		res.json({ user, userStations })
-		// res.json(user)
+	
+		// res.json({ user, userStations })
+		res.json(user)
 	} catch (err) {
 		logger.error('Failed to Login ' + err)
 		res.status(401).send({ err: 'Failed to Login' })
@@ -32,8 +34,11 @@ export async function signup(req, res) {
 
 		const user = await authService.login(credentials.username, credentials.password)
 
-		//HERE ASWELL RIGHT?//
-		// const userStations = await stationService.query({ids: user.userStations || []})
+	
+		// let userStations = []
+		// if (user.userStations && user.userStations.length > 0) {
+		// 	userStations = await stationService.query({ ids: user.userStations })
+		// }
 
 		logger.info('User signup:', user)
 

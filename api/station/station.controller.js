@@ -1,4 +1,5 @@
 import { logger } from '../../services/logger.service.js'
+import { userService } from '../user/user.service.js'
 import { stationService } from './station.service.js'
 
 export async function getStations(req, res) {
@@ -28,22 +29,29 @@ export async function getStationById(req, res) {
 
 export async function addStation(req, res) {
 	const { loggedinUser, body } = req
+	console.log('body:', body)
+
+
 	const station = {
 		name: body.name,
 		imgUrl: body.imgUrl || '',
-		owner: loggedinUser || {
-			"_id": "694c1b3ba9b537bd0a56f092",
-			"username": "aaa",
-			"fullname": "aaa",
-		},
-		// just for testing from postman
-
+		owner: loggedinUser,
 		description: '',
 		tracks: body.tracks || []
 	}
 	try {
-		// station.owner = loggedinUser
+
 		const addedStation = await stationService.add(station)
+
+		console.log('userId:', loggedinUser._id)
+
+		const currentUser = await userService.getById(loggedinUser._id)
+		currentUser.userStationsIds = [...(currentUser.userStationsIds || []), addedStation._id.toString()]
+
+
+		await userService.update(currentUser)
+
+
 		res.json(addedStation)
 	} catch (err) {
 		logger.error('Failed to add station', err)

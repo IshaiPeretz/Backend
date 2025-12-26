@@ -1,5 +1,11 @@
-import {logger} from './logger.service.js'
-import {Server} from 'socket.io'
+import { logger } from './logger.service.js'
+import { Server } from 'socket.io'
+
+export const SOCKET_EMIT_STATION_WATCH = 'station-watch'
+export const SOCKET_EVENT_ADD_TRACK = 'add-track-to-station'
+export const SOCKET_EVENT_REMOVE_TRACK = 'remove-track-from-station'
+export const SOCKET_EVENT_STATION_UPDATED = 'station-updated'
+
 
 var gIo = null
 
@@ -42,7 +48,19 @@ export function setupSocketAPI(http) {
             logger.info(`Removing socket.userId for socket [id: ${socket.id}]`)
             delete socket.userId
         })
+        socket.on(SOCKET_EMIT_STATION_WATCH, stationId => {
+            logger.info(`station is being watched from socket [id: ${socket.id}]`)
+            socket.join(stationId)
+        })
+        socket.on(SOCKET_EVENT_ADD_TRACK, ({ stationId, track }) => {
+            logger.info(`Track added to ${stationId} `)
+            socket.to(stationId).emit(SOCKET_EVENT_ADD_TRACK, track)
+        })
 
+        socket.on(SOCKET_EVENT_REMOVE_TRACK, ({ stationId, trackId }) => {
+            logger.info(`Track removed from ${stationId} `)
+            socket.to(stationId).emit(SOCKET_EVENT_REMOVE_TRACK, trackId)
+        })
     })
 }
 
@@ -58,7 +76,7 @@ async function emitToUser({ type, data, userId }) {
     if (socket) {
         logger.info(`Emiting event: ${type} to user: ${userId} socket [id: ${socket.id}]`)
         socket.emit(type, data)
-    }else {
+    } else {
         logger.info(`No active socket for user: ${userId}`)
         // _printSockets()
     }
@@ -68,7 +86,7 @@ async function emitToUser({ type, data, userId }) {
 // Optionally, broadcast to a room / to all
 async function broadcast({ type, data, room = null, userId }) {
     userId = userId.toString()
-    
+
     logger.info(`Broadcasting event: ${type}`)
     const excludedSocket = await _getUserSocket(userId)
     if (room && excludedSocket) {
@@ -110,9 +128,9 @@ export const socketService = {
     // set up the sockets service and define the API
     setupSocketAPI,
     // emit to everyone / everyone in a specific room (label)
-    emitTo, 
+    emitTo,
     // emit to a specific user (if currently active in system)
-    emitToUser, 
+    emitToUser,
     // Send to all sockets BUT not the current socket - if found
     // (otherwise broadcast to a room / to all)
     broadcast,

@@ -11,6 +11,8 @@ export const authService = {
 	login,
 	getLoginToken,
 	validateToken,
+	getUserByGoogleId,
+	signupGoogleUser,
 }
 
 async function login(username, password) {
@@ -42,11 +44,11 @@ async function signup({ username, password, fullname, }) {
 }
 
 function getLoginToken(user) {
-	const userInfo = { 
-        _id: user._id, 
-        fullname: user.fullname, 
-        isAdmin: user.isAdmin,
-    }
+	const userInfo = {
+		_id: user._id,
+		fullname: user.fullname,
+		isAdmin: user.isAdmin,
+	}
 	return cryptr.encrypt(JSON.stringify(userInfo))
 }
 
@@ -59,4 +61,30 @@ function validateToken(loginToken) {
 		console.log('Invalid login token')
 	}
 	return null
+}
+
+async function getUserByGoogleId(googleId) {
+	if (!googleId) return null
+	return await userService.getByGoogleId(googleId)
+}
+
+async function signupGoogleUser({ googleId, username, fullname }) {
+	if (!googleId || !username || !fullname) {
+		return Promise.reject('Missing Google user information')
+	}
+
+	const userToAdd = {
+		username,
+		fullname,
+		googleId,
+		authProvider: 'google',
+		password: null,
+	}
+
+	const user = await userService.addGoogleUser(userToAdd)
+
+	delete user.password
+	user._id = user._id.toString()
+
+	return user
 }

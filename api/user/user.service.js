@@ -5,11 +5,13 @@ import { ObjectId } from 'mongodb'
 
 export const userService = {
     add, // Create (Signup)
+    addGoogleUser,
     getById, // Read (Profile page)
     update, // Update (Edit profile)
     remove, // Delete (remove user)
     query, // List (of users)
     getByUsername, // Used for Login
+    getByGoogleId,
 }
 
 async function query(filterBy = {}) {
@@ -38,9 +40,9 @@ async function getById(userId) {
         const collection = await dbService.getCollection('user')
         const user = await collection.findOne(criteria)
         delete user.password
-      
 
-    
+
+
         return user
     } catch (err) {
         logger.error(`while finding user by id: ${userId}`, err)
@@ -59,6 +61,18 @@ async function getByUsername(username) {
     }
 }
 
+async function getByGoogleId(googleId) {
+    try {
+        const collection = await dbService.getCollection('user')
+        const user = await collection.findOne({ googleId })
+        return user
+    } catch (err) {
+        logger.error(`while finding user by googleId: ${googleId}`, err)
+        throw err
+    }
+}
+
+
 async function remove(userId) {
     try {
         const criteria = { _id: ObjectId.createFromHexString(userId) }
@@ -73,25 +87,26 @@ async function remove(userId) {
 
 
 async function update(user) {
-  try {
+    try {
 
-    const collection = await dbService.getCollection('user')
-    const userId = new ObjectId(user._id)
-    
-    await collection.updateOne(
-      { _id:  userId },
-      { $set: { 
-          likedSongs: user.likedSongs || [],
-          userStationsIds: user.userStationsIds || [],
-        }
-      }
-    )
-    
-    return await collection.findOne({ _id: userId })
-  } catch (err) {
-    logger.error(`cannot update user ${user._id}`, err)
-    throw err
-  }
+        const collection = await dbService.getCollection('user')
+        const userId = new ObjectId(user._id)
+
+        await collection.updateOne(
+            { _id: userId },
+            {
+                $set: {
+                    likedSongs: user.likedSongs || [],
+                    userStationsIds: user.userStationsIds || [],
+                }
+            }
+        )
+
+        return await collection.findOne({ _id: userId })
+    } catch (err) {
+        logger.error(`cannot update user ${user._id}`, err)
+        throw err
+    }
 }
 
 
@@ -113,6 +128,28 @@ async function add(user) {
         throw err
     }
 }
+
+async function addGoogleUser(user) {
+    try {
+        const userToAdd = {
+            username: user.username,
+            fullname: user.fullname,
+            googleId: user.googleId,
+            authProvider: 'google',
+            likedSongs: [],
+            userStationsIds: [],
+        }
+
+        const collection = await dbService.getCollection('user')
+        const res = await collection.insertOne(userToAdd)
+
+        return { ...userToAdd, _id: res.insertedId }
+    } catch (err) {
+        logger.error('cannot add Google user', err)
+        throw err
+    }
+}
+
 
 function _buildCriteria(filterBy) {
     const criteria = {}

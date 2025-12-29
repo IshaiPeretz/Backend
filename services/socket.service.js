@@ -26,12 +26,12 @@ export function setupSocketAPI(http) {
         })
         socket.on(SOCKET_EVENT_ADD_TRACK, ({ stationId, track }) => {
             logger.info(`Track added to ${stationId} `)
-            socket.to(stationId).emit(SOCKET_EVENT_ADD_TRACK, track)
+            socket.broadcast.to(stationId).emit(SOCKET_EVENT_ADD_TRACK, track)
         })
 
         socket.on(SOCKET_EVENT_REMOVE_TRACK, ({ stationId, trackId }) => {
             logger.info(`Track removed from ${stationId} `)
-            socket.to(stationId).emit(SOCKET_EVENT_REMOVE_TRACK, trackId)
+            socket.broadcast.to(stationId).emit(SOCKET_EVENT_REMOVE_TRACK, trackId)
         })
     })
 }

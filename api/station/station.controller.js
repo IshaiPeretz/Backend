@@ -74,7 +74,7 @@ export async function updateStation(req, res) {
 	
 	try {
 		const updatedStation = await stationService.update(station)
-		console.log(updatedStation);
+
 		res.json(updatedStation)
 	} catch (err) {
 		logger.error('Failed to update station', err)
